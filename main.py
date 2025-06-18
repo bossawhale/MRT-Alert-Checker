@@ -10,7 +10,7 @@ ACCESS_TOKEN = os.environ.get('LINE_ACCESS_TOKEN')
 
 def check_mrt_status():
     # 測試用訊息，實際部署後可替換為 TDX 查詢結果
-    return "🚨 這是一則來自 Cloud Run 的 LINE Bot 測試訊息！"
+    return "🚨 這是一則來自 Cloud Run 的 LINE Bot 測試訊息！！！"
 
 def send_line_message(message):
     try:
