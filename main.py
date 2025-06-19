@@ -67,7 +67,7 @@ def check_mrt_status():
         data = resp.json()
         alerts = data.get("Alerts", [])
         if not alerts:
-            return None
+            return data
 
         abnormal_messages = []
         for alert in alerts:
