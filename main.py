@@ -80,11 +80,11 @@ def check_mrt_status():
 
         if abnormal_messages:
             return "\n\n".join(abnormal_messages)
-        return data
+        return None
 
     except Exception as e:
         logger.error(f"[ERROR] 查詢 MRT API 時發生錯誤: {e}")
-        return None
+        return data
 
 # ----------- 發送 LINE 訊息 -----------
 def send_line_message(message: str) -> bool:
@@ -112,7 +112,8 @@ def send_line_message(message: str) -> bool:
 def run_check():
     msg = check_mrt_status()
     if msg:
-        success = send_line_message(msg)
+        return msg
+        #success = send_line_message(msg)
         if success:
             return jsonify({"status": "success", "message": msg}), 200
         else:
