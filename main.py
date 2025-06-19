@@ -67,7 +67,7 @@ def check_mrt_status():
         data = resp.json()
         alerts = data.get("Alerts", [])
         if not alerts:
-            return None
+            return data
 
         abnormal_messages = []
         for alert in alerts:
@@ -80,7 +80,7 @@ def check_mrt_status():
 
         if abnormal_messages:
             return "\n\n".join(abnormal_messages)
-        return None
+        return data
 
     except Exception as e:
         logger.error(f"[ERROR] 查詢 MRT API 時發生錯誤: {e}")
