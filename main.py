@@ -112,7 +112,7 @@ def send_line_message(message: str) -> bool:
 def run_check():
 
     token = request.headers.get("Authorization", "")
-    if token != f"Bearer {os.environ.get('1234567890')}":
+    if token != f"Bearer {os.environ.get('CRON_SECRET_TOKEN')}":
         return jsonify({"error": "Unauthorized"}), 401
         
     msg = check_mrt_status()
