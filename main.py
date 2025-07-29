@@ -75,7 +75,7 @@ def check_mrt_status():
 
         abnormal_messages = []
         for alert in alerts:
-            if alert.get("Status") != 0:
+            if alert.get("Status") != 1:
                 title = alert.get("Title", "異常")
                 desc = alert.get("Description", "")
                 reason = alert.get("Reason", "")
