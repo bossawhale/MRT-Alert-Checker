@@ -1,0 +1,15 @@
+name: 定時觸發 MRT 檢查
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # 每 5 分鐘觸發
+  workflow_dispatch:
+
+jobs:
+  ping-cloud-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 呼叫 Cloud Run
+        run: |
+          curl -X GET https://mrt-alert-checker-556968624506.asia-east1.run.app \
+          -H "Authorization: Bearer 1234567890"
