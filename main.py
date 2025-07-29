@@ -67,7 +67,7 @@ def check_mrt_status():
         data = resp.json()
         alerts = data.get("Alerts", [])
         if not alerts:
-            return data
+            return json.dumps(data, ensure_ascii=False, indent=2)
 
         abnormal_messages = []
         for alert in alerts:
@@ -100,14 +100,17 @@ def send_line_message(message: str) -> bool:
         "messages": [{"type": "text", "text": message}]
     }
     try:
+        logger.info(f"送出的 LINE 訊息內容:\n{message}")        
         response = requests.post(LINE_API_URL, headers=headers, json=data, timeout=10)
         response.raise_for_status()
         logger.info("LINE 訊息已送出")
         return True
     except requests.RequestException as e:
         logger.error(f"LINE 訊息發送失敗: {e}")
-        if e.response is not None:
-            logger.error(f"LINE 回應內容: {e.response.text}")
+        try:
+            logger.error(f"LINE 回應內容: {response.text}")
+        except:
+            pass
         return False
 
 @app.route("/", methods=["GET"])
