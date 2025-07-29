@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: 呼叫 Cloud Run
         run: |
-          curl -X GET https://mrt-alert-checker-556968624506.asia-east1.run.app \
+          curl -X GET https://mrt-alert-checker-556968624506.asia-east1.run.app/?debug=1 \
           -H "Authorization: Bearer 1234567890"
