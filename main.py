@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 from flask import Flask, jsonify, request
 import requests
 
@@ -9,14 +10,17 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 讀取 LINE Bot 設定
+# LINE Bot 設定
 LINE_API_URL = 'https://api.line.me/v2/bot/message/push'
 GROUP_ID = os.environ.get('LINE_GROUP_ID')
 ACCESS_TOKEN = os.environ.get('LINE_ACCESS_TOKEN')
 
-# 讀取 TDX 認證用的 Client ID / Secret
+# TDX 認證用的 Client ID / Secret
 TDX_CLIENT_ID = os.environ.get('TDX_CLIENT_ID')
 TDX_CLIENT_SECRET = os.environ.get('TDX_CLIENT_SECRET')
+
+# 排程驗證用 Token
+CRON_SECRET_TOKEN = os.environ.get('CRON_SECRET_TOKEN')
 
 # 啟動時檢查環境變數
 if not GROUP_ID or not ACCESS_TOKEN:
@@ -67,7 +71,7 @@ def check_mrt_status():
         data = resp.json()
         alerts = data.get("Alerts", [])
         if not alerts:
-            return json.dumps(data, ensure_ascii=False, indent=2)
+            return None  # 無資料視為正常
 
         abnormal_messages = []
         for alert in alerts:
@@ -80,7 +84,7 @@ def check_mrt_status():
 
         if abnormal_messages:
             return "\n\n".join(abnormal_messages)
-        return data
+        return None  # 全部 status=1 視為正常
 
     except Exception as e:
         logger.error(f"[ERROR] 查詢 MRT API 時發生錯誤: {e}")
@@ -88,9 +92,6 @@ def check_mrt_status():
 
 # ----------- 發送 LINE 訊息 -----------
 def send_line_message(message: str) -> bool:
-    """
-    發送訊息到 LINE 群組。成功回傳 True，失敗回傳 False。
-    """
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {ACCESS_TOKEN}"
@@ -99,8 +100,9 @@ def send_line_message(message: str) -> bool:
         "to": GROUP_ID,
         "messages": [{"type": "text", "text": message}]
     }
+
     try:
-        logger.info(f"送出的 LINE 訊息內容:\n{message}")        
+        logger.info(f"送出的 LINE 訊息內容:\n{message}")
         response = requests.post(LINE_API_URL, headers=headers, json=data, timeout=10)
         response.raise_for_status()
         logger.info("LINE 訊息已送出")
@@ -113,13 +115,16 @@ def send_line_message(message: str) -> bool:
             pass
         return False
 
+# ----------- 主執行入口 -----------
 @app.route("/", methods=["GET"])
 def run_check():
-
+    # 驗證 Header Token
     token = request.headers.get("Authorization", "")
-    if token != f"Bearer {os.environ.get('CRON_SECRET_TOKEN')}":
+    if token != f"Bearer {CRON_SECRET_TOKEN}":
         return jsonify({"error": "Unauthorized"}), 401
-        
+
+    debug = request.args.get("debug") == "1"
+
     msg = check_mrt_status()
     if msg:
         success = send_line_message(msg)
@@ -127,6 +132,19 @@ def run_check():
             return jsonify({"status": "success", "message": msg}), 200
         else:
             return jsonify({"status": "error", "message": "LINE 訊息發送失敗"}), 500
+    elif debug:
+        # 若無異常但有 debug query string，回傳 raw data
+        token = get_tdx_token()
+        if token:
+            headers = {"Authorization": f"Bearer {token}"}
+            url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/Alert/TRTC?$top=30&$format=JSON"
+            try:
+                resp = requests.get(url, headers=headers, timeout=10)
+                resp.raise_for_status()
+                return jsonify(resp.json()), 200
+            except Exception as e:
+                return jsonify({"status": "error", "detail": str(e)}), 500
+
     return jsonify({"status": "ok", "message": "一切正常"}), 200
 
 @app.route("/health", methods=["GET"])
