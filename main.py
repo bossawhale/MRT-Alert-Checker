@@ -106,6 +106,8 @@ def send_line_message(message: str) -> bool:
         return True
     except requests.RequestException as e:
         logger.error(f"LINE 訊息發送失敗: {e}")
+        if e.response is not None:
+            logger.error(f"LINE 回應內容: {e.response.text}")
         return False
 
 @app.route("/", methods=["GET"])
