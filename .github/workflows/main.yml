@@ -1,0 +1,15 @@
+name: 定時觸發 MRT 檢查
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # 每五分鐘執行一次（UTC 時區）
+  workflow_dispatch:       # 保留手動觸發
+
+jobs:
+  mrt-alert-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 呼叫 MRT 檢查 API
+        run: |
+          curl -X GET 'https://mrt-alert-checker-556968624506.asia-east1.run.app/?debug=0' \
+            -H "Authorization: Bearer 1234567890"
