@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: 呼叫 MRT 檢查 API
         run: |
-          curl -X GET https://mrt-alert-checker-556968624506.asia-east1.run.app/?debug=1 \
+          curl -X GET https://mrt-alert-checker-556968624506.asia-east1.run.app/?debug=0 \
           -H "Authorization: Bearer 1234567890"
