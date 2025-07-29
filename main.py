@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 
 app = Flask(__name__)
@@ -117,8 +117,7 @@ def run_check():
         
     msg = check_mrt_status()
     if msg:
-        return msg
-        #success = send_line_message(msg)
+        success = send_line_message(msg)
         if success:
             return jsonify({"status": "success", "message": msg}), 200
         else:
